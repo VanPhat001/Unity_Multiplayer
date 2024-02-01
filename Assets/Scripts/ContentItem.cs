@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class ContentItem : MonoBehaviour
@@ -15,4 +16,10 @@ public class ContentItem : MonoBehaviour
     public TMP_Text RoomNameText => roomNameText;
     public TMP_Text RoomStatusText => roomStatusText;
     public Button JoinButton => joinButton;
+
+    // private void Awake() {
+    //     joinButton.onClick.AddListener(() => {
+    //         Debug.Log("join button click................................");
+    //     });
+    // }
 }

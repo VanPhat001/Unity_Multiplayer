@@ -164,7 +164,8 @@ public class Multiplayer : MonoBehaviour
         try
         {
             // currentLobby = await LobbyService.Instance.QuickJoinLobbyAsync();
-            currentLobby = lobby;
+            currentLobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobby.Id);
+
             // pollForUpdatesTimer.Start();
 
             string relayJoinCode = currentLobby.Data[k_keyJoinCode].Value;
@@ -224,7 +225,7 @@ public class Multiplayer : MonoBehaviour
         }
     }
 
-    async Task HandleHeartbeatAsync()
+    async void HandleHeartbeatAsync()
     {
         try
         {
@@ -237,7 +238,7 @@ public class Multiplayer : MonoBehaviour
         }
     }
 
-    async Task HandlePollForUpdatesAsync()
+    async void HandlePollForUpdatesAsync()
     {
         try
         {

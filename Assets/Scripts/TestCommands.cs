@@ -19,28 +19,14 @@ static public class TestCommands
     [ConsoleMethod("createLobby", "")]
     public static async void CreateLobby()
     {
-        // Multiplayer.Instance.CreateLobby(lobbyName);
         await Multiplayer.Instance.CreateLobby();
     }
-
-    // [ConsoleMethod("joinLobby", "")]
-    // public static void JoinLobby(string lobbyId)
-    // {
-    //     Multiplayer.Instance.JoinLobby(lobbyId);
-    // }
 
     [ConsoleMethod("quickJoinLobby", "")]
     public static async void QuickJoinLobby()
     {
         await Multiplayer.Instance.QuickJoinLobby();
     }
-
-
-    // [ConsoleMethod("lobbyPlayerCount", "")]
-    // public static void GetLobbyPlayerCount(string lobbyId)
-    // {
-    // Multiplayer.Instance.GetLobbyPlayerCount(lobbyId);
-    // }
 
     [ConsoleMethod("showLobbies", "")]
     public static void ShowLobbies()

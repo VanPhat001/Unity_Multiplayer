@@ -10,6 +10,7 @@ using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [System.Serializable]
@@ -22,7 +23,7 @@ public enum EncryptionType
 
 public class Multiplayer : MonoBehaviour
 {
-    [SerializeField] string lobbyName = "Lobby";
+    [SerializeField] string lobbyName;
     [SerializeField] int maxPlayers = 4;
     [SerializeField] EncryptionType encryption = EncryptionType.DTLS;
 
@@ -46,7 +47,9 @@ public class Multiplayer : MonoBehaviour
     async void Start()
     {
         Instance = this;
-        DontDestroyOnLoad(this);
+        DontDestroyOnLoad(this.gameObject);
+
+        lobbyName = "Lobby" + UnityEngine.Random.Range(0, 1000);
 
         await Authenticate();
     }
@@ -104,6 +107,21 @@ public class Multiplayer : MonoBehaviour
         }
     }
 
+    public Player CreatePlayer()
+    {
+        return new Player()
+        {
+            // Profile = new PlayerProfile(PlayerName)
+            Data = new Dictionary<string, PlayerDataObject>()
+            {
+                {
+                    "PlayerName",
+                    new PlayerDataObject(  PlayerDataObject.VisibilityOptions.Member, PlayerName )
+                }
+            }
+        };
+    }
+
     public async Task CreateLobby()
     {
         try
@@ -113,7 +131,8 @@ public class Multiplayer : MonoBehaviour
 
             CreateLobbyOptions options = new CreateLobbyOptions
             {
-                IsPrivate = false
+                IsPrivate = false,
+                Player = CreatePlayer()
             };
 
             currentLobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, options);
@@ -121,9 +140,10 @@ public class Multiplayer : MonoBehaviour
 
             await LobbyService.Instance.UpdateLobbyAsync(currentLobby.Id, new UpdateLobbyOptions
             {
-                Data = new Dictionary<string, DataObject> {
-                        {k_keyJoinCode, new DataObject(DataObject.VisibilityOptions.Member, relayJoinCode)}
-                    }
+                Data = new Dictionary<string, DataObject>
+                {
+                    {k_keyJoinCode, new DataObject(DataObject.VisibilityOptions.Member, relayJoinCode)}
+                }
             });
 
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(new RelayServerData(
@@ -142,7 +162,12 @@ public class Multiplayer : MonoBehaviour
     {
         try
         {
-            currentLobby = await LobbyService.Instance.QuickJoinLobbyAsync();
+            QuickJoinLobbyOptions options = new QuickJoinLobbyOptions()
+            {
+                Player = CreatePlayer()
+            };
+
+            currentLobby = await LobbyService.Instance.QuickJoinLobbyAsync(options);
 
             string relayJoinCode = currentLobby.Data[k_keyJoinCode].Value;
             JoinAllocation joinAllocation = await JoinRelay(relayJoinCode);
@@ -163,8 +188,13 @@ public class Multiplayer : MonoBehaviour
     {
         try
         {
+            JoinLobbyByIdOptions options = new JoinLobbyByIdOptions()
+            {
+                Player = CreatePlayer()
+            };
+
             // currentLobby = await LobbyService.Instance.QuickJoinLobbyAsync();
-            currentLobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobby.Id);
+            currentLobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobby.Id, options);
 
             // pollForUpdatesTimer.Start();
 
@@ -257,7 +287,7 @@ public class Multiplayer : MonoBehaviour
         var lobbies = queryResponse.Results;
         foreach (Lobby lobby in lobbies)
         {
-            Debug.Log("--> Lobby " + lobby.Id);
+            Debug.Log("--> Lobby " + lobby.Name + " -- " + lobby.Id);
             ShowPlayers(lobby);
         }
     }
@@ -266,8 +296,10 @@ public class Multiplayer : MonoBehaviour
     {
         foreach (Player player in lobby.Players)
         {
-            string s = $"PlayerId {player.Id} name {player}";
-            Debug.Log("Playerid: " + player.Id);
+            string name = player.Data["PlayerName"].Value;
+            string s = $"PlayerId {player.Id} name {name}";
+            // string s = $"PlayerId {player.Id}";
+            Debug.Log(s);
         }
     }
 
